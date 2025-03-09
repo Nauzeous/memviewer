@@ -23,7 +23,6 @@ int main() {
 	printf("IF YOU SCROLL TOO FAR, YOU WILL GET A SEGFAULT");
 
 	InitWindow(WIDTH, HEIGHT, "Memory Viewer");
-	SetTargetFPS(30);
 
 	Color memo[256];
 	// cache the rgb values for every hsv input, because colorfromhsv is expensive
