@@ -19,8 +19,10 @@ void segv_handler(int signal) {
 }
 
 int main() {
-	InitWindow(WIDTH, HEIGHT, "Memory Viewer");
+
 	printf("IF YOU SCROLL TOO FAR, YOU WILL GET A SEGFAULT");
+
+	InitWindow(WIDTH, HEIGHT, "Memory Viewer");
 	SetTargetFPS(30);
 
 	Color memo[256];
@@ -36,9 +38,9 @@ int main() {
 	sa.sa_flags = 0;
 	sigaction(SIGSEGV, &sa, NULL);
 
-	unsigned char* basePointer = (unsigned char *)malloc(1);
-	unsigned char* memPtr = basePointer - 0x100000; 
-	unsigned char* rawpixeldata = (unsigned char*)malloc(MEM_SIZE*4);
+	unsigned char* base_pointer = (unsigned char *)malloc(1);
+	unsigned char* mem_ptr = base_pointer - 0x100000; 
+	unsigned char* raw_pixel_data = (unsigned char*)malloc(MEM_SIZE*4);
 	Image img = GenImageColor(WIDTH, HEIGHT, BLACK);
 	Texture2D texture = LoadTextureFromImage(img);
 	UnloadImage(img);
@@ -47,35 +49,35 @@ int main() {
 	    for (int i = 0; i < MEM_SIZE; i++) {
 			unsigned char value = 0;
 			jmp_set = 1;
-			// this basically just does a try-catch for a segfault
+			// this does a try-catch for a segfault
 			if (setjmp(env) == 0) {
-			    value = *(memPtr + i);
+			    value = *(mem_ptr + i);
 			} else {
 			    value = 0;
 			}
 
 			Color col = memo[value];
-			rawpixeldata[i*4 + 0] = col.r;
-			rawpixeldata[i*4 + 1] = col.g;
-			rawpixeldata[i*4 + 2] = col.b;
-			rawpixeldata[i*4 + 3] = 255;
+			raw_pixel_data[i*4 + 0] = col.r;
+			raw_pixel_data[i*4 + 1] = col.g;
+			raw_pixel_data[i*4 + 2] = col.b;
+			raw_pixel_data[i*4 + 3] = 255;
 		}
 
-		UpdateTexture(texture, rawpixeldata);
+		UpdateTexture(texture, raw_pixel_data);
 
 		BeginDrawing();
 		ClearBackground(BLACK);
 		DrawTexture(texture, 0, 0, WHITE);
 		EndDrawing();
 
-		// Move to a different memory region on keypress
-		if (IsKeyPressed(KEY_RIGHT)) memPtr += MEM_SIZE/2;
-		if (IsKeyPressed(KEY_LEFT)) memPtr -= MEM_SIZE/2;
+		// Move to a different memory region
+		if (IsKeyPressed(KEY_RIGHT)) mem_ptr += MEM_SIZE/2;
+		if (IsKeyPressed(KEY_LEFT)) mem_ptr -= MEM_SIZE/2;
 	}
 
-	free(rawpixeldata);
+	free(raw_pixel_data);
 	UnloadTexture(texture);
-	free(basePointer);
+	free(base_pointer);
 	CloseWindow();
 	return 0;
 }
