@@ -26,8 +26,7 @@ int main() {
 	SetTargetFPS(30);
 
 	Color memo[256];
-	// cache the rgb values for every hsv input
-	// this is maybe a weird way to do it, but the ColorFromHSV function is p expensive, so why not 
+	// cache the rgb values for every hsv input, because colorfromhsv is expensive
 	for(int i = 0;i<255;i++){
 		memo[i] = ColorFromHSV(i*(360.0f/255.0f),1.0f,(float)i/255.0f);
 	}
@@ -40,10 +39,15 @@ int main() {
 
 	unsigned char* base_pointer = (unsigned char *)malloc(1);
 	unsigned char* mem_ptr = base_pointer - 0x100000; 
-	unsigned char* raw_pixel_data = (unsigned char*)malloc(MEM_SIZE*4);
-	Image img = GenImageColor(WIDTH, HEIGHT, BLACK);
+	Color* raw_pixel_data = (Color*)malloc(MEM_SIZE*sizeof(Color));
+	Image img = {
+		.data = raw_pixel_data,
+		.width = WIDTH,
+		.height = HEIGHT,
+		.format = PIXELFORMAT_UNCOMPRESSED_R8G8B8A8,
+		.mipmaps = 1
+	};
 	Texture2D texture = LoadTextureFromImage(img);
-	UnloadImage(img);
 	SetTargetFPS(20);
 	while (!WindowShouldClose()) {
 	    for (int i = 0; i < MEM_SIZE; i++) {
@@ -55,12 +59,7 @@ int main() {
 			} else {
 			    value = 0;
 			}
-
-			Color col = memo[value];
-			raw_pixel_data[i*4 + 0] = col.r;
-			raw_pixel_data[i*4 + 1] = col.g;
-			raw_pixel_data[i*4 + 2] = col.b;
-			raw_pixel_data[i*4 + 3] = 255;
+			raw_pixel_data[i] = memo[value];
 		}
 
 		UpdateTexture(texture, raw_pixel_data);
